@@ -110,6 +110,13 @@ interface AppState {
   randomize: () => void;
   favorites: string[];
   toggleFavorite: (id: string) => void;
+  referenceImages: ReferenceImage[];
+  addReferenceImage: (img: ReferenceImage) => void;
+  removeReferenceImage: (id: string) => void;
+  userTemplates: SceneTemplate[];
+  saveUserTemplate: (name: string) => void;
+  removeUserTemplate: (id: string) => void;
+  applyTemplate: (template: SceneTemplate) => void;
 }
 
 const SUBJECTS: Subject[] = ['Person', 'Man', 'Woman', 'Group'];
