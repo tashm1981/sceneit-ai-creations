@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion } from 'framer-motion';
-import { Zap } from 'lucide-react';
+import { Zap, Images } from 'lucide-react';
 import { ModeSelector } from '@/components/ModeSelector';
 import { useAppStore } from '@/lib/store';
 
@@ -79,6 +79,15 @@ function HomePage() {
             className="w-full gradient-primary glow-purple rounded-2xl py-4 font-display text-sm font-bold tracking-wider uppercase text-primary-foreground text-center"
           >
             Start Creating
+          </motion.div>
+        </Link>
+        <Link to="/gallery" className="mt-3 block">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            className="w-full bg-surface-elevated border-glow rounded-2xl py-4 font-display text-sm font-bold tracking-wider uppercase text-muted-foreground text-center flex items-center justify-center gap-2"
+          >
+            <Images className="h-4 w-4" />
+            Gallery
           </motion.div>
         </Link>
       </motion.div>
