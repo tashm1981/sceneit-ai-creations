@@ -34,6 +34,36 @@ export interface AdvancedSettings {
   lighting: 'natural' | 'dramatic' | 'neon' | 'flash';
 }
 
+export interface ReferenceImage {
+  id: string;
+  dataUrl: string;
+  type: 'style' | 'subject';
+  name: string;
+}
+
+export interface SceneTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  subject: Subject;
+  outfit: Outfit;
+  location: Location;
+  mood: Mood;
+  mode: CreationMode;
+  lighting?: 'natural' | 'dramatic' | 'neon' | 'flash';
+}
+
+export const SCENE_TEMPLATES: SceneTemplate[] = [
+  { id: 'dark-alley', name: 'Dark Alley Confrontation', description: 'Tense street scene with dramatic neon lighting', subject: 'Man', outfit: 'Streetwear', location: 'City street', mood: 'Aggressive', mode: 'cinematic', lighting: 'neon' },
+  { id: 'penthouse-flex', name: 'Penthouse Flex', description: 'Luxury lifestyle shot from a high-rise view', subject: 'Man', outfit: 'Luxury', location: 'Mansion', mood: 'Confident', mode: 'cinematic', lighting: 'natural' },
+  { id: 'rooftop-anime', name: 'Rooftop Anime Hero', description: 'Dramatic anime hero pose at golden hour', subject: 'Person', outfit: 'Casual', location: 'Rooftop', mood: 'Confident', mode: 'animation', lighting: 'dramatic' },
+  { id: 'studio-portrait', name: 'Studio Portrait', description: 'Clean professional portrait with flash', subject: 'Woman', outfit: 'Luxury', location: 'Studio', mood: 'Calm', mode: 'camera', lighting: 'flash' },
+  { id: 'trap-single', name: 'Trap Single Cover', description: 'Bold centered cover art with text space', subject: 'Man', outfit: 'Streetwear', location: 'Studio', mood: 'Aggressive', mode: 'coverart', lighting: 'neon' },
+  { id: 'group-squad', name: 'Squad Goals', description: 'Group shot with cinematic composition', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Confident', mode: 'cinematic', lighting: 'dramatic' },
+  { id: 'anime-villain', name: 'Anime Villain Arc', description: 'Dark mysterious anime antagonist', subject: 'Person', outfit: 'Luxury', location: 'Mansion', mood: 'Mysterious', mode: 'animation', lighting: 'neon' },
+  { id: 'club-night', name: 'Club Night', description: 'Neon-lit party scene vibes', subject: 'Group', outfit: 'Athletic', location: 'Club', mood: 'Happy', mode: 'camera', lighting: 'neon' },
+];
+
 export interface GeneratedImage {
   id: string;
   url: string;
@@ -70,6 +100,13 @@ interface AppState {
   randomize: () => void;
   favorites: string[];
   toggleFavorite: (id: string) => void;
+  referenceImages: ReferenceImage[];
+  addReferenceImage: (img: ReferenceImage) => void;
+  removeReferenceImage: (id: string) => void;
+  userTemplates: SceneTemplate[];
+  saveUserTemplate: (name: string) => void;
+  removeUserTemplate: (id: string) => void;
+  applyTemplate: (template: SceneTemplate) => void;
 }
 
 const SUBJECTS: Subject[] = ['Person', 'Man', 'Woman', 'Group'];
@@ -130,6 +167,39 @@ export const useAppStore = create<AppState>((set) => ({
         ? state.favorites.filter((f) => f !== id)
         : [...state.favorites, id],
     })),
+  referenceImages: [],
+  addReferenceImage: (img) =>
+    set((state) => ({ referenceImages: [...state.referenceImages, img] })),
+  removeReferenceImage: (id) =>
+    set((state) => ({ referenceImages: state.referenceImages.filter((img) => img.id !== id) })),
+  userTemplates: [],
+  saveUserTemplate: (name) =>
+    set((state) => ({
+      userTemplates: [
+        ...state.userTemplates,
+        {
+          id: crypto.randomUUID(),
+          name,
+          subject: state.subject,
+          outfit: state.outfit,
+          location: state.location,
+          mood: state.mood,
+          mode: state.mode,
+          lighting: state.advancedSettings.lighting,
+        },
+      ],
+    })),
+  removeUserTemplate: (id) =>
+    set((state) => ({ userTemplates: state.userTemplates.filter((t) => t.id !== id) })),
+  applyTemplate: (template) =>
+    set({
+      subject: template.subject,
+      outfit: template.outfit,
+      location: template.location,
+      mood: template.mood,
+      mode: template.mode,
+      ...(template.lighting ? { advancedSettings: { creativity: 50, styleStrength: 70, hdEnabled: false, lighting: template.lighting } } : {}),
+    }),
 }));
 
 export function buildPrompt(state: {

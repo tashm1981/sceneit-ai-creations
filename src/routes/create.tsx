@@ -7,6 +7,8 @@ import { PromptDisplay } from '@/components/PromptDisplay';
 import { AdvancedSettings } from '@/components/AdvancedSettings';
 import { GenerateButton } from '@/components/GenerateButton';
 import { ImageGallery } from '@/components/ImageGallery';
+import { ReferenceImageUpload } from '@/components/ReferenceImageUpload';
+import { TemplateManager } from '@/components/TemplateManager';
 import { useAppStore, buildPrompt, type GeneratedImage } from '@/lib/store';
 
 export const Route = createFileRoute('/create')({
@@ -74,12 +76,28 @@ function CreatePage() {
       </motion.div>
 
       <div className="space-y-6">
+        {/* Templates */}
+        <section>
+          <h2 className="font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-3">
+            Templates
+          </h2>
+          <TemplateManager />
+        </section>
+
         {/* Presets */}
         <section>
           <h2 className="font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-3">
-            Presets
+            Quick Presets
           </h2>
           <PresetChips />
+        </section>
+
+        {/* Reference Images */}
+        <section>
+          <h2 className="font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-3">
+            Reference Images
+          </h2>
+          <ReferenceImageUpload />
         </section>
 
         {/* Prompt Builder */}
