@@ -46,10 +46,10 @@ export function PromptBuilder() {
 
   return (
     <div className="space-y-5">
-      <ChipGroup label="Subject" options={subjects} value={subject as string} onChange={setSubject} />
-      <ChipGroup label="Outfit" options={outfits} value={outfit as string} onChange={setOutfit} />
-      <ChipGroup label="Location" options={locations} value={location as string} onChange={setLocation} />
-      <ChipGroup label="Mood" options={moods} value={mood as string} onChange={setMood} />
+      <ChipGroup label="Subject" options={subjects} value={subject} onChange={(v) => setSubject(v)} />
+      <ChipGroup label="Outfit" options={outfits} value={outfit} onChange={(v) => setOutfit(v)} />
+      <ChipGroup label="Location" options={locations} value={location} onChange={(v) => setLocation(v)} />
+      <ChipGroup label="Mood" options={moods} value={mood} onChange={(v) => setMood(v as Mood)} />
     </div>
   );
 }
