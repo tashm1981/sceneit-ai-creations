@@ -75,16 +75,6 @@ export interface GeneratedImage {
   location: Location;
   mood: Mood;
 }
-  id: string;
-  url: string;
-  prompt: string;
-  mode: CreationMode;
-  timestamp: number;
-  subject: Subject;
-  outfit: Outfit;
-  location: Location;
-  mood: Mood;
-}
 
 interface AppState {
   mode: CreationMode;
@@ -177,6 +167,39 @@ export const useAppStore = create<AppState>((set) => ({
         ? state.favorites.filter((f) => f !== id)
         : [...state.favorites, id],
     })),
+  referenceImages: [],
+  addReferenceImage: (img) =>
+    set((state) => ({ referenceImages: [...state.referenceImages, img] })),
+  removeReferenceImage: (id) =>
+    set((state) => ({ referenceImages: state.referenceImages.filter((img) => img.id !== id) })),
+  userTemplates: [],
+  saveUserTemplate: (name) =>
+    set((state) => ({
+      userTemplates: [
+        ...state.userTemplates,
+        {
+          id: crypto.randomUUID(),
+          name,
+          subject: state.subject,
+          outfit: state.outfit,
+          location: state.location,
+          mood: state.mood,
+          mode: state.mode,
+          lighting: state.advancedSettings.lighting,
+        },
+      ],
+    })),
+  removeUserTemplate: (id) =>
+    set((state) => ({ userTemplates: state.userTemplates.filter((t) => t.id !== id) })),
+  applyTemplate: (template) =>
+    set({
+      subject: template.subject,
+      outfit: template.outfit,
+      location: template.location,
+      mood: template.mood,
+      mode: template.mode,
+      ...(template.lighting ? { advancedSettings: { creativity: 50, styleStrength: 70, hdEnabled: false, lighting: template.lighting } } : {}),
+    }),
 }));
 
 export function buildPrompt(state: {
