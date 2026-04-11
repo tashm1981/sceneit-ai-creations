@@ -49,7 +49,7 @@ function HomePage() {
         <p className="text-lg font-medium text-foreground">
           You get noticed when you…
         </p>
-        <p className="font-display text-2xl font-black mt-1 gradient-primary bg-clip-text text-transparent">
+        <p className="font-display text-2xl font-black mt-1 gradient-primary bg-clip-text" style={{ color: 'black' }}>
           Make a Scene!
         </p>
       </motion.div>
