@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Search, X, Heart, Download, Share2, Filter } from 'lucide-react';
+import { ArrowLeft, Search, X, Heart, Download, Share2, Filter, Copy, RefreshCw } from 'lucide-react';
 import { useAppStore, type CreationMode, type GeneratedImage } from '@/lib/store';
+import { useNavigate } from '@tanstack/react-router';
 
 const MODE_FILTERS: { value: CreationMode | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -23,7 +24,8 @@ export const Route = createFileRoute('/gallery')({
 });
 
 function GalleryPage() {
-  const { generatedImages, favorites, toggleFavorite } = useAppStore();
+  const { generatedImages, favorites, toggleFavorite, setSubject, setOutfit, setLocation, setMood, setMode } = useAppStore();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [modeFilter, setModeFilter] = useState<CreationMode | 'all'>('all');
   const [selected, setSelected] = useState<GeneratedImage | null>(null);
@@ -46,7 +48,7 @@ function GalleryPage() {
   });
 
   return (
-    <div className="min-h-screen px-5 py-6 pb-10">
+    <div className="min-h-screen px-5 py-6 pb-24">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0 }}
@@ -192,17 +194,36 @@ function GalleryPage() {
             <div className="px-4 pb-2">
               <p className="text-xs text-muted-foreground line-clamp-2">{selected.prompt}</p>
             </div>
-            <div className="flex justify-center gap-4 p-6">
+            <div className="flex justify-center gap-3 p-6">
               {[
-                { icon: Download, label: 'Save' },
-                { icon: Heart, label: 'Fave', active: favorites.includes(selected.id) },
-                { icon: Share2, label: 'Share' },
-              ].map(({ icon: Icon, label, active }) => (
+                { icon: Download, label: 'Save', action: () => {
+                  const a = document.createElement('a');
+                  a.href = selected.url;
+                  a.download = `sceneit-${selected.id}.png`;
+                  a.click();
+                }},
+                { icon: Heart, label: 'Fave', active: favorites.includes(selected.id), action: () => toggleFavorite(selected.id) },
+                { icon: Copy, label: 'Prompt', action: () => {
+                  navigator.clipboard.writeText(selected.prompt);
+                }},
+                { icon: RefreshCw, label: 'Similar', action: () => {
+                  setSubject(selected.subject);
+                  setOutfit(selected.outfit);
+                  setLocation(selected.location);
+                  setMood(selected.mood);
+                  setMode(selected.mode);
+                  setSelected(null);
+                  navigate({ to: '/create' });
+                }},
+                { icon: Share2, label: 'Share', action: () => {
+                  if (navigator.share) {
+                    navigator.share({ title: 'SceneIt', text: selected.prompt, url: selected.url });
+                  }
+                }},
+              ].map(({ icon: Icon, label, active, action }) => (
                 <button
                   key={label}
-                  onClick={() => {
-                    if (label === 'Fave') toggleFavorite(selected.id);
-                  }}
+                  onClick={action}
                   className="flex flex-col items-center gap-1 text-muted-foreground"
                 >
                   <div className={`rounded-full p-3 border-glow ${active ? 'bg-neon-pink/20' : 'bg-surface-elevated'}`}>
