@@ -10,6 +10,10 @@ import { ImageGallery } from '@/components/ImageGallery';
 import { ReferenceImageUpload } from '@/components/ReferenceImageUpload';
 import { TemplateManager } from '@/components/TemplateManager';
 import { useAppStore, buildPrompt, type GeneratedImage } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import { useNavigate } from '@tanstack/react-router';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/create')({
   head: () => ({
@@ -23,29 +27,68 @@ export const Route = createFileRoute('/create')({
 
 function CreatePage() {
   const store = useAppStore();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleGenerate = () => {
     if (store.isGenerating || store.credits <= 0) return;
+    if (!user) {
+      toast.error('Sign in to generate images');
+      navigate({ to: '/auth' });
+      return;
+    }
     store.setIsGenerating(true);
 
     const prompt = store.customPrompt || buildPrompt(store);
 
-    // Simulate generation with placeholder images
-    setTimeout(() => {
-      const newImage: GeneratedImage = {
-        id: crypto.randomUUID(),
-        url: `https://picsum.photos/seed/${Date.now()}/512/512`,
-        prompt,
-        mode: store.mode,
-        timestamp: Date.now(),
-        subject: store.subject,
-        outfit: store.outfit,
-        location: store.location,
-        mood: store.mood,
-      };
-      store.addGeneratedImage(newImage);
-      store.setIsGenerating(false);
-    }, 2500);
+    (async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession();
+        const token = sessionData.session?.access_token;
+        if (!token) throw new Error('Not signed in');
+
+        const resp = await fetch('/_serverFn/src_server_generate-scene_ts--generateScene_createServerFn_handler', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            data: { prompt, hd: store.advancedSettings.hdEnabled },
+          }),
+        });
+
+        if (!resp.ok) {
+          const txt = await resp.text();
+          throw new Error(txt || 'Generation failed');
+        }
+        const json = await resp.json();
+        const url: string = json?.result?.url ?? json?.url;
+        const newCredits: number | undefined = json?.result?.credits ?? json?.credits;
+
+        if (!url) throw new Error('No image returned');
+
+        const newImage: GeneratedImage = {
+          id: crypto.randomUUID(),
+          url,
+          prompt,
+          mode: store.mode,
+          timestamp: Date.now(),
+          subject: store.subject,
+          outfit: store.outfit,
+          location: store.location,
+          mood: store.mood,
+        };
+        store.addGeneratedImage(newImage);
+        if (typeof newCredits === 'number') store.setCredits(newCredits);
+        toast.success('Scene created');
+      } catch (err) {
+        console.error(err);
+        toast.error(err instanceof Error ? err.message : 'Generation failed');
+      } finally {
+        store.setIsGenerating(false);
+      }
+    })();
   };
 
   return (
