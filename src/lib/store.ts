@@ -146,8 +146,23 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({ advancedSettings: { ...state.advancedSettings, ...s } })),
   credits: 10,
   generatedImages: [],
-  addGeneratedImage: (img) =>
-    set((state) => ({ generatedImages: [img, ...state.generatedImages] })),
+  addGeneratedImage: (img) => {
+    const uid = useAppStore.getState().currentUserId;
+    if (uid) {
+      supabase.from('user_generated_images').insert({
+        user_id: uid,
+        client_id: img.id,
+        url: img.url,
+        prompt: img.prompt,
+        mode: img.mode,
+        subject: String(img.subject),
+        outfit: String(img.outfit),
+        location: String(img.location),
+        mood: img.mood,
+      }).then();
+    }
+    set((state) => ({ generatedImages: [img, ...state.generatedImages] }));
+  },
   isGenerating: false,
   setIsGenerating: (isGenerating) => set({ isGenerating }),
   applyPreset: (preset) =>
