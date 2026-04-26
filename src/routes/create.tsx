@@ -47,24 +47,21 @@ function CreatePage() {
         const token = sessionData.session?.access_token;
         if (!token) throw new Error('Not signed in');
 
-        const resp = await fetch('/_serverFn/src_server_generate-scene_ts--generateScene_createServerFn_handler', {
+        const resp = await fetch('/api/generate-scene', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            data: { prompt, hd: store.advancedSettings.hdEnabled },
-          }),
+          body: JSON.stringify({ prompt, hd: store.advancedSettings.hdEnabled }),
         });
 
+        const json = await resp.json().catch(() => ({}));
         if (!resp.ok) {
-          const txt = await resp.text();
-          throw new Error(txt || 'Generation failed');
+          throw new Error(json?.error || 'Generation failed');
         }
-        const json = await resp.json();
-        const url: string = json?.result?.url ?? json?.url;
-        const newCredits: number | undefined = json?.result?.credits ?? json?.credits;
+        const url: string = json?.url;
+        const newCredits: number | undefined = json?.credits;
 
         if (!url) throw new Error('No image returned');
 
