@@ -1,7 +1,8 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { Home, PlusCircle, Images } from 'lucide-react';
+import { Home, PlusCircle, Images, User } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
-const NAV_ITEMS = [
+const BASE_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
   { to: '/create' as const, label: 'Create', icon: PlusCircle },
   { to: '/gallery' as const, label: 'Gallery', icon: Images },
@@ -9,6 +10,11 @@ const NAV_ITEMS = [
 
 export function BottomNav() {
   const location = useLocation();
+  const { user } = useAuth();
+  const NAV_ITEMS = [
+    ...BASE_ITEMS,
+    { to: (user ? '/account' : '/auth') as '/auth' | '/account', label: user ? 'Me' : 'Sign In', icon: User },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-t border-border">
