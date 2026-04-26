@@ -14,6 +14,7 @@ import { Route as CreateRouteImport } from './routes/create'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGenerateSceneRouteImport } from './routes/api.generate-scene'
 
 const GalleryRoute = GalleryRouteImport.update({
   id: '/gallery',
@@ -40,6 +41,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerateSceneRoute = ApiGenerateSceneRouteImport.update({
+  id: '/api/generate-scene',
+  path: '/api/generate-scene',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
+  '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
+  '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,33 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
+  '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/account' | '/auth' | '/create' | '/gallery'
+  fullPaths:
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/create'
+    | '/gallery'
+    | '/api/generate-scene'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/account' | '/auth' | '/create' | '/gallery'
-  id: '__root__' | '/' | '/account' | '/auth' | '/create' | '/gallery'
+  to:
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/create'
+    | '/gallery'
+    | '/api/generate-scene'
+  id:
+    | '__root__'
+    | '/'
+    | '/account'
+    | '/auth'
+    | '/create'
+    | '/gallery'
+    | '/api/generate-scene'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +105,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   CreateRoute: typeof CreateRoute
   GalleryRoute: typeof GalleryRoute
+  ApiGenerateSceneRoute: typeof ApiGenerateSceneRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -116,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generate-scene': {
+      id: '/api/generate-scene'
+      path: '/api/generate-scene'
+      fullPath: '/api/generate-scene'
+      preLoaderRoute: typeof ApiGenerateSceneRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   CreateRoute: CreateRoute,
   GalleryRoute: GalleryRoute,
+  ApiGenerateSceneRoute: ApiGenerateSceneRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
