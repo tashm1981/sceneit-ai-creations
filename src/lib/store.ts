@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { supabase } from '@/integrations/supabase/client';
 
 export type CreationMode = 'cinematic' | 'camera' | 'animation' | 'coverart';
 export type Subject = 'Person' | 'Man' | 'Woman' | 'Group' | string;
@@ -107,6 +108,10 @@ interface AppState {
   saveUserTemplate: (name: string) => void;
   removeUserTemplate: (id: string) => void;
   applyTemplate: (template: SceneTemplate) => void;
+  setCredits: (c: number) => void;
+  currentUserId: string | null;
+  syncFromSupabase: (userId: string) => Promise<void>;
+  resetLocal: () => void;
 }
 
 const SUBJECTS: Subject[] = ['Person', 'Man', 'Woman', 'Group'];
@@ -141,8 +146,23 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({ advancedSettings: { ...state.advancedSettings, ...s } })),
   credits: 10,
   generatedImages: [],
-  addGeneratedImage: (img) =>
-    set((state) => ({ generatedImages: [img, ...state.generatedImages] })),
+  addGeneratedImage: (img) => {
+    const uid = useAppStore.getState().currentUserId;
+    if (uid) {
+      supabase.from('user_generated_images').insert({
+        user_id: uid,
+        client_id: img.id,
+        url: img.url,
+        prompt: img.prompt,
+        mode: img.mode,
+        subject: String(img.subject),
+        outfit: String(img.outfit),
+        location: String(img.location),
+        mood: img.mood,
+      }).then();
+    }
+    set((state) => ({ generatedImages: [img, ...state.generatedImages] }));
+  },
   isGenerating: false,
   setIsGenerating: (isGenerating) => set({ isGenerating }),
   applyPreset: (preset) =>
@@ -162,11 +182,19 @@ export const useAppStore = create<AppState>((set) => ({
     }),
   favorites: [],
   toggleFavorite: (id) =>
-    set((state) => ({
-      favorites: state.favorites.includes(id)
-        ? state.favorites.filter((f) => f !== id)
-        : [...state.favorites, id],
-    })),
+    set((state) => {
+      const has = state.favorites.includes(id);
+      const next = has ? state.favorites.filter((f) => f !== id) : [...state.favorites, id];
+      const uid = state.currentUserId;
+      if (uid) {
+        if (has) {
+          supabase.from('user_favorites').delete().eq('user_id', uid).eq('image_id', id).then();
+        } else {
+          supabase.from('user_favorites').insert({ user_id: uid, image_id: id }).then();
+        }
+      }
+      return { favorites: next };
+    }),
   referenceImages: [],
   addReferenceImage: (img) =>
     set((state) => ({ referenceImages: [...state.referenceImages, img] })),
@@ -200,6 +228,86 @@ export const useAppStore = create<AppState>((set) => ({
       mode: template.mode,
       ...(template.lighting ? { advancedSettings: { creativity: 50, styleStrength: 70, hdEnabled: false, lighting: template.lighting } } : {}),
     }),
+  setCredits: (credits) => {
+    const uid = useAppStore.getState().currentUserId;
+    if (uid) {
+      supabase
+        .from('user_credits')
+        .update({ credits, updated_at: new Date().toISOString() })
+        .eq('user_id', uid)
+        .then();
+    }
+    set({ credits });
+  },
+  currentUserId: null,
+  resetLocal: () =>
+    set({ currentUserId: null, favorites: [], generatedImages: [], credits: 10 }),
+  syncFromSupabase: async (userId: string) => {
+    set({ currentUserId: userId });
+    const local = useAppStore.getState();
+
+    if (local.favorites.length > 0) {
+      await supabase
+        .from('user_favorites')
+        .upsert(
+          local.favorites.map((image_id) => ({ user_id: userId, image_id })),
+          { onConflict: 'user_id,image_id' }
+        );
+    }
+    if (local.generatedImages.length > 0) {
+      await supabase.from('user_generated_images').insert(
+        local.generatedImages.map((img) => ({
+          user_id: userId,
+          client_id: img.id,
+          url: img.url,
+          prompt: img.prompt,
+          mode: img.mode,
+          subject: String(img.subject),
+          outfit: String(img.outfit),
+          location: String(img.location),
+          mood: img.mood,
+        }))
+      );
+    }
+
+    const [credRes, favRes, imgRes] = await Promise.all([
+      supabase.from('user_credits').select('credits').eq('user_id', userId).maybeSingle(),
+      supabase.from('user_favorites').select('image_id').eq('user_id', userId),
+      supabase
+        .from('user_generated_images')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(100),
+    ]);
+
+    set({
+      credits: credRes.data?.credits ?? 10,
+      favorites: (favRes.data ?? []).map((r: { image_id: string }) => r.image_id),
+      generatedImages: (imgRes.data ?? []).map((r: {
+        client_id: string | null;
+        id: string;
+        url: string;
+        prompt: string;
+        mode: string;
+        created_at: string;
+        subject: string;
+        outfit: string;
+        location: string;
+        mood: string;
+      }) => ({
+        id: r.client_id ?? r.id,
+        url: r.url,
+        prompt: r.prompt,
+        mode: r.mode as CreationMode,
+        timestamp: new Date(r.created_at).getTime(),
+        subject: r.subject,
+        outfit: r.outfit,
+        location: r.location,
+        mood: r.mood as Mood,
+      })),
+    });
+  },
 }));
 
 export function buildPrompt(state: {
