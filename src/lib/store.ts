@@ -183,6 +183,8 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setAdvancedSettings: (s) =>
     set((state) => ({ advancedSettings: { ...state.advancedSettings, ...s } })),
+  modelTier: 'balanced',
+  setModelTier: (modelTier) => set({ modelTier }),
   credits: 10,
   generatedImages: [],
   addGeneratedImage: (img) => {
