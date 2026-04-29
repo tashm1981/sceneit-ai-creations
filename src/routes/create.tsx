@@ -28,8 +28,26 @@ export const Route = createFileRoute('/create')({
 
 function CreatePage() {
   const store = useAppStore();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Require sign-in to access the create page
+  if (!loading && !user) {
+    if (typeof window !== 'undefined') {
+      navigate({ to: '/auth' });
+    }
+    return (
+      <div className="min-h-screen flex items-center justify-center px-6 text-center">
+        <div>
+          <h2 className="font-display text-2xl font-black text-foreground mb-2">Sign in required</h2>
+          <p className="text-sm text-muted-foreground mb-6">Create an account to start generating scenes.</p>
+          <Link to="/auth" className="inline-block gradient-primary glow-purple rounded-2xl px-6 py-3 font-display text-sm font-bold tracking-wider uppercase text-primary-foreground">
+            Sign in to continue
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handleGenerate = () => {
     if (store.isGenerating || store.credits <= 0) return;
