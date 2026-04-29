@@ -9,6 +9,7 @@ import { GenerateButton } from '@/components/GenerateButton';
 import { ImageGallery } from '@/components/ImageGallery';
 import { ReferenceImageUpload } from '@/components/ReferenceImageUpload';
 import { TemplateManager } from '@/components/TemplateManager';
+import { ModelSelector } from '@/components/ModelSelector';
 import { useAppStore, buildPrompt, type GeneratedImage } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from '@tanstack/react-router';
@@ -53,7 +54,11 @@ function CreatePage() {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ prompt, hd: store.advancedSettings.hdEnabled }),
+          body: JSON.stringify({
+            prompt,
+            tier: store.modelTier,
+            hd: store.advancedSettings.hdEnabled,
+          }),
         });
 
         const json = await resp.json().catch(() => ({}));
@@ -130,6 +135,14 @@ function CreatePage() {
             Quick Presets
           </h2>
           <PresetChips />
+        </section>
+
+        {/* Model */}
+        <section>
+          <h2 className="font-display text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-3">
+            Model
+          </h2>
+          <ModelSelector />
         </section>
 
         {/* Reference Images */}
