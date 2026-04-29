@@ -3,10 +3,22 @@ import { createClient } from '@supabase/supabase-js';
 import { supabaseAdmin } from '@/integrations/supabase/client.server';
 import type { Database } from '@/integrations/supabase/types';
 
-function pickModel(hd: boolean) {
-  return hd
-    ? 'google/gemini-3-pro-image-preview'
-    : 'google/gemini-2.5-flash-image';
+type ModelTier = 'fast' | 'balanced' | 'hd';
+
+function pickModel(tier: ModelTier) {
+  switch (tier) {
+    case 'hd':
+      return 'google/gemini-3-pro-image-preview';
+    case 'balanced':
+      return 'google/gemini-3.1-flash-image-preview';
+    case 'fast':
+    default:
+      return 'google/gemini-2.5-flash-image';
+  }
+}
+
+function tierCost(tier: ModelTier) {
+  return tier === 'hd' ? 2 : 1;
 }
 
 export const Route = createFileRoute('/api/generate-scene')({
@@ -38,7 +50,11 @@ export const Route = createFileRoute('/api/generate-scene')({
           }
           const userId = claimsData.claims.sub;
 
-          const body = (await request.json()) as { prompt?: string; hd?: boolean };
+          const body = (await request.json()) as {
+            prompt?: string;
+            hd?: boolean;
+            tier?: ModelTier;
+          };
           const prompt = (body.prompt ?? '').trim();
           if (prompt.length < 4 || prompt.length > 4000) {
             return new Response(JSON.stringify({ error: 'Invalid prompt' }), {
@@ -46,7 +62,13 @@ export const Route = createFileRoute('/api/generate-scene')({
               headers: { 'Content-Type': 'application/json' },
             });
           }
-          const hd = !!body.hd;
+          const tier: ModelTier =
+            body.tier && ['fast', 'balanced', 'hd'].includes(body.tier)
+              ? body.tier
+              : body.hd
+                ? 'hd'
+                : 'balanced';
+          const cost = tierCost(tier);
 
           // Check credits
           const { data: cred } = await supabaseAdmin
@@ -55,8 +77,8 @@ export const Route = createFileRoute('/api/generate-scene')({
             .eq('user_id', userId)
             .maybeSingle();
           const current = cred?.credits ?? 0;
-          if (current <= 0) {
-            return new Response(JSON.stringify({ error: 'Out of credits' }), {
+          if (current < cost) {
+            return new Response(JSON.stringify({ error: 'Not enough credits' }), {
               status: 402,
               headers: { 'Content-Type': 'application/json' },
             });
@@ -77,7 +99,7 @@ export const Route = createFileRoute('/api/generate-scene')({
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              model: pickModel(hd),
+              model: pickModel(tier),
               messages: [{ role: 'user', content: prompt }],
               modalities: ['image', 'text'],
             }),
@@ -145,10 +167,10 @@ export const Route = createFileRoute('/api/generate-scene')({
 
           await supabaseAdmin
             .from('user_credits')
-            .update({ credits: current - 1, updated_at: new Date().toISOString() })
+            .update({ credits: current - cost, updated_at: new Date().toISOString() })
             .eq('user_id', userId);
 
-          return new Response(JSON.stringify({ url, credits: current - 1 }), {
+          return new Response(JSON.stringify({ url, credits: current - cost }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           });

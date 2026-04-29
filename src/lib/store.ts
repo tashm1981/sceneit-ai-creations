@@ -35,6 +35,43 @@ export interface AdvancedSettings {
   lighting: 'natural' | 'dramatic' | 'neon' | 'flash';
 }
 
+export type ModelTier = 'fast' | 'balanced' | 'hd';
+
+export interface ModelOption {
+  id: ModelTier;
+  name: string;
+  tagline: string;
+  description: string;
+  credits: number;
+  badge?: string;
+}
+
+export const MODEL_OPTIONS: ModelOption[] = [
+  {
+    id: 'fast',
+    name: 'Nano',
+    tagline: 'Fast & cheap',
+    description: 'Quick drafts and ideation. Great for iterating.',
+    credits: 1,
+  },
+  {
+    id: 'balanced',
+    name: 'Nano Banana 2',
+    tagline: 'Balanced',
+    description: 'Pro-level quality with snappy speed. Best everyday pick.',
+    credits: 1,
+    badge: 'Popular',
+  },
+  {
+    id: 'hd',
+    name: 'Gemini 3 Pro',
+    tagline: 'Cinematic HD',
+    description: 'Maximum detail and realism. Use for final renders.',
+    credits: 2,
+    badge: 'HD',
+  },
+];
+
 export interface ReferenceImage {
   id: string;
   dataUrl: string;
@@ -92,6 +129,8 @@ interface AppState {
   setCustomPrompt: (p: string) => void;
   advancedSettings: AdvancedSettings;
   setAdvancedSettings: (s: Partial<AdvancedSettings>) => void;
+  modelTier: ModelTier;
+  setModelTier: (t: ModelTier) => void;
   credits: number;
   generatedImages: GeneratedImage[];
   addGeneratedImage: (img: GeneratedImage) => void;
@@ -144,6 +183,8 @@ export const useAppStore = create<AppState>((set) => ({
   },
   setAdvancedSettings: (s) =>
     set((state) => ({ advancedSettings: { ...state.advancedSettings, ...s } })),
+  modelTier: 'balanced',
+  setModelTier: (modelTier) => set({ modelTier }),
   credits: 10,
   generatedImages: [],
   addGeneratedImage: (img) => {
