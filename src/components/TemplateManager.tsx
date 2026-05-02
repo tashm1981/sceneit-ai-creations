@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout, Save, Trash2, Film, Camera, Sparkles, Disc3 } from 'lucide-react';
-import { useAppStore, type CreationMode, type SceneTemplate, SCENE_TEMPLATES } from '@/lib/store';
+import { useAppStore, type CreationMode, type SceneTemplate, SCENE_TEMPLATES, TEMPLATE_CATEGORIES, type TemplateCategory } from '@/lib/store';
 
 const modeIcons: Record<CreationMode, React.ReactNode> = {
   cinematic: <Film className="h-3.5 w-3.5" />,
@@ -15,6 +15,12 @@ export function TemplateManager() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [templateName, setTemplateName] = useState('');
   const [activeTab, setActiveTab] = useState<'premade' | 'saved'>('premade');
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
+
+  const filteredTemplates =
+    selectedCategory === 'all'
+      ? SCENE_TEMPLATES
+      : SCENE_TEMPLATES.filter((t) => t.category === selectedCategory);
 
   const handleApplyTemplate = (template: SceneTemplate) => {
     store.applyTemplate(template);
@@ -57,8 +63,31 @@ export function TemplateManager() {
 
       {/* Pre-made Templates */}
       {activeTab === 'premade' && (
-        <div className="grid grid-cols-2 gap-2">
-          {SCENE_TEMPLATES.map((template) => (
+        <>
+          <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+            <div className="flex gap-2 pb-1">
+              {(['all', ...TEMPLATE_CATEGORIES.map((c) => c.id)] as const).map((cat) => {
+                const label = cat === 'all' ? 'All' : TEMPLATE_CATEGORIES.find((c) => c.id === cat)?.label;
+                const active = selectedCategory === cat;
+                return (
+                  <motion.button
+                    key={cat}
+                    whileTap={{ scale: 0.93 }}
+                    onClick={() => setSelectedCategory(cat as TemplateCategory | 'all')}
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-medium transition-all ${
+                      active
+                        ? 'gradient-primary text-primary-foreground glow-purple'
+                        : 'bg-surface-elevated border-glow text-muted-foreground'
+                    }`}
+                  >
+                    {label}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {filteredTemplates.map((template) => (
             <motion.button
               key={template.id}
               whileTap={{ scale: 0.95 }}
@@ -72,8 +101,9 @@ export function TemplateManager() {
               <p className="text-xs font-semibold text-foreground truncate">{template.name}</p>
               <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{template.description}</p>
             </motion.button>
-          ))}
-        </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Saved Templates */}
