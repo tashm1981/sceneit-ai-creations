@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout, Save, Trash2, Film, Camera, Sparkles, Disc3 } from 'lucide-react';
 import { useAppStore, type CreationMode, type SceneTemplate, SCENE_TEMPLATES, TEMPLATE_CATEGORIES, type TemplateCategory } from '@/lib/store';
+import { TEMPLATE_THUMBNAILS } from '@/lib/templateThumbnails';
 
 const modeIcons: Record<CreationMode, React.ReactNode> = {
   cinematic: <Film className="h-3.5 w-3.5" />,
@@ -92,14 +93,26 @@ export function TemplateManager() {
               key={template.id}
               whileTap={{ scale: 0.95 }}
               onClick={() => handleApplyTemplate(template)}
-              className="rounded-2xl bg-surface-elevated border-glow p-3 text-left transition-all hover:border-primary/50"
+              className="rounded-2xl bg-surface-elevated border-glow text-left transition-all hover:border-primary/50 overflow-hidden"
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="text-neon-blue">{modeIcons[template.mode]}</span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{template.mode}</span>
+              <div className="relative aspect-square w-full overflow-hidden bg-surface">
+                {TEMPLATE_THUMBNAILS[template.id] && (
+                  <img
+                    src={TEMPLATE_THUMBNAILS[template.id]}
+                    alt={template.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                )}
+                <div className="absolute top-1.5 left-1.5 flex items-center gap-1 rounded-full bg-background/70 backdrop-blur px-2 py-0.5">
+                  <span className="text-neon-blue">{modeIcons[template.mode]}</span>
+                  <span className="text-[9px] text-foreground uppercase tracking-wider">{template.mode}</span>
+                </div>
               </div>
-              <p className="text-xs font-semibold text-foreground truncate">{template.name}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{template.description}</p>
+              <div className="p-2.5">
+                <p className="text-xs font-semibold text-foreground truncate">{template.name}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">{template.description}</p>
+              </div>
             </motion.button>
             ))}
           </div>
