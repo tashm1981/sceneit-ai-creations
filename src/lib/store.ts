@@ -89,17 +89,73 @@ export interface SceneTemplate {
   mood: Mood;
   mode: CreationMode;
   lighting?: 'natural' | 'dramatic' | 'neon' | 'flash';
+  category: TemplateCategory;
 }
 
+export type TemplateCategory =
+  | 'hip-hop'
+  | 'luxury'
+  | 'anime'
+  | 'cinematic'
+  | 'fashion'
+  | 'coverart'
+  | 'lifestyle';
+
+export const TEMPLATE_CATEGORIES: { id: TemplateCategory; label: string }[] = [
+  { id: 'hip-hop', label: 'Hip-Hop' },
+  { id: 'luxury', label: 'Luxury' },
+  { id: 'anime', label: 'Anime' },
+  { id: 'cinematic', label: 'Cinematic' },
+  { id: 'fashion', label: 'Fashion' },
+  { id: 'coverart', label: 'Cover Art' },
+  { id: 'lifestyle', label: 'Lifestyle' },
+];
+
 export const SCENE_TEMPLATES: SceneTemplate[] = [
-  { id: 'dark-alley', name: 'Dark Alley Confrontation', description: 'Tense street scene with dramatic neon lighting', subject: 'Man', outfit: 'Streetwear', location: 'City street', mood: 'Aggressive', mode: 'cinematic', lighting: 'neon' },
-  { id: 'penthouse-flex', name: 'Penthouse Flex', description: 'Luxury lifestyle shot from a high-rise view', subject: 'Man', outfit: 'Luxury', location: 'Mansion', mood: 'Confident', mode: 'cinematic', lighting: 'natural' },
-  { id: 'rooftop-anime', name: 'Rooftop Anime Hero', description: 'Dramatic anime hero pose at golden hour', subject: 'Person', outfit: 'Casual', location: 'Rooftop', mood: 'Confident', mode: 'animation', lighting: 'dramatic' },
-  { id: 'studio-portrait', name: 'Studio Portrait', description: 'Clean professional portrait with flash', subject: 'Woman', outfit: 'Luxury', location: 'Studio', mood: 'Calm', mode: 'camera', lighting: 'flash' },
-  { id: 'trap-single', name: 'Trap Single Cover', description: 'Bold centered cover art with text space', subject: 'Man', outfit: 'Streetwear', location: 'Studio', mood: 'Aggressive', mode: 'coverart', lighting: 'neon' },
-  { id: 'group-squad', name: 'Squad Goals', description: 'Group shot with cinematic composition', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Confident', mode: 'cinematic', lighting: 'dramatic' },
-  { id: 'anime-villain', name: 'Anime Villain Arc', description: 'Dark mysterious anime antagonist', subject: 'Person', outfit: 'Luxury', location: 'Mansion', mood: 'Mysterious', mode: 'animation', lighting: 'neon' },
-  { id: 'club-night', name: 'Club Night', description: 'Neon-lit party scene vibes', subject: 'Group', outfit: 'Athletic', location: 'Club', mood: 'Happy', mode: 'camera', lighting: 'neon' },
+  // Cinematic
+  { id: 'dark-alley', name: 'Dark Alley Confrontation', description: 'Tense street scene with neon lighting', subject: 'Man', outfit: 'Streetwear', location: 'City street', mood: 'Aggressive', mode: 'cinematic', lighting: 'neon', category: 'cinematic' },
+  { id: 'group-squad', name: 'Squad Goals', description: 'Group shot with cinematic composition', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Confident', mode: 'cinematic', lighting: 'dramatic', category: 'cinematic' },
+  { id: 'noir-detective', name: 'Noir Detective', description: 'Black & white film noir investigator', subject: 'Man', outfit: 'Luxury', location: 'City street', mood: 'Mysterious', mode: 'cinematic', lighting: 'dramatic', category: 'cinematic' },
+  { id: 'heist-crew', name: 'Heist Crew', description: 'Crew lined up before the job', subject: 'Group', outfit: 'Luxury', location: 'City street', mood: 'Confident', mode: 'cinematic', lighting: 'dramatic', category: 'cinematic' },
+  { id: 'scifi-runner', name: 'Sci-fi Runner', description: 'Futuristic chase through neon streets', subject: 'Person', outfit: 'Athletic', location: 'City street', mood: 'Aggressive', mode: 'cinematic', lighting: 'neon', category: 'cinematic' },
+
+  // Hip-Hop
+  { id: 'drill-cypher', name: 'Drill Cypher', description: 'Group cypher under streetlights', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Aggressive', mode: 'cinematic', lighting: 'neon', category: 'hip-hop' },
+  { id: 'studio-booth', name: 'Studio Booth', description: 'In the booth recording, mic close up', subject: 'Man', outfit: 'Streetwear', location: 'Studio', mood: 'Confident', mode: 'camera', lighting: 'dramatic', category: 'hip-hop' },
+  { id: 'money-shot', name: 'Money Shot', description: 'Cash fan flex, gold chains, low angle', subject: 'Man', outfit: 'Streetwear', location: 'Mansion', mood: 'Confident', mode: 'camera', lighting: 'flash', category: 'hip-hop' },
+  { id: 'block-party', name: 'Block Party', description: 'Crowded block party energy', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Happy', mode: 'camera', lighting: 'natural', category: 'hip-hop' },
+
+  // Luxury
+  { id: 'penthouse-flex', name: 'Penthouse Flex', description: 'High-rise luxury lifestyle', subject: 'Man', outfit: 'Luxury', location: 'Mansion', mood: 'Confident', mode: 'cinematic', lighting: 'natural', category: 'luxury' },
+  { id: 'yacht-life', name: 'Yacht Life', description: 'Sunset yacht deck vibes', subject: 'Group', outfit: 'Luxury', location: 'Mansion', mood: 'Calm', mode: 'camera', lighting: 'natural', category: 'luxury' },
+  { id: 'private-jet', name: 'Private Jet', description: 'Boarding the jet on the tarmac', subject: 'Man', outfit: 'Luxury', location: 'Mansion', mood: 'Confident', mode: 'camera', lighting: 'natural', category: 'luxury' },
+  { id: 'supercar-pullup', name: 'Supercar Pull-up', description: 'Leaning on a supercar at night', subject: 'Man', outfit: 'Luxury', location: 'City street', mood: 'Confident', mode: 'cinematic', lighting: 'neon', category: 'luxury' },
+
+  // Anime
+  { id: 'rooftop-anime', name: 'Rooftop Anime Hero', description: 'Dramatic hero pose at golden hour', subject: 'Person', outfit: 'Casual', location: 'Rooftop', mood: 'Confident', mode: 'animation', lighting: 'dramatic', category: 'anime' },
+  { id: 'anime-villain', name: 'Anime Villain Arc', description: 'Dark mysterious antagonist', subject: 'Person', outfit: 'Luxury', location: 'Mansion', mood: 'Mysterious', mode: 'animation', lighting: 'neon', category: 'anime' },
+  { id: 'shonen-powerup', name: 'Shonen Power-up', description: 'Energy aura charging up', subject: 'Person', outfit: 'Athletic', location: 'Rooftop', mood: 'Aggressive', mode: 'animation', lighting: 'dramatic', category: 'anime' },
+  { id: 'slice-of-life', name: 'Slice of Life', description: 'Cozy everyday anime moment', subject: 'Person', outfit: 'Casual', location: 'Studio', mood: 'Happy', mode: 'animation', lighting: 'natural', category: 'anime' },
+  { id: 'mecha-pilot', name: 'Mecha Pilot', description: 'Cockpit pilot ready for battle', subject: 'Person', outfit: 'Athletic', location: 'Studio', mood: 'Confident', mode: 'animation', lighting: 'neon', category: 'anime' },
+
+  // Fashion
+  { id: 'studio-portrait', name: 'Studio Portrait', description: 'Clean editorial portrait with flash', subject: 'Woman', outfit: 'Luxury', location: 'Studio', mood: 'Calm', mode: 'camera', lighting: 'flash', category: 'fashion' },
+  { id: 'high-fashion-flash', name: 'High Fashion Flash', description: 'Hard flash street fashion', subject: 'Woman', outfit: 'Luxury', location: 'City street', mood: 'Mysterious', mode: 'camera', lighting: 'flash', category: 'fashion' },
+  { id: 'vogue-cover', name: 'Vogue Cover', description: 'Magazine cover composition', subject: 'Woman', outfit: 'Luxury', location: 'Studio', mood: 'Confident', mode: 'coverart', lighting: 'flash', category: 'fashion' },
+  { id: 'streetwear-lookbook', name: 'Streetwear Lookbook', description: 'Full-body lookbook on the street', subject: 'Person', outfit: 'Streetwear', location: 'City street', mood: 'Calm', mode: 'camera', lighting: 'natural', category: 'fashion' },
+
+  // Cover Art
+  { id: 'trap-single', name: 'Trap Single Cover', description: 'Bold centered cover with text space', subject: 'Man', outfit: 'Streetwear', location: 'Studio', mood: 'Aggressive', mode: 'coverart', lighting: 'neon', category: 'coverart' },
+  { id: 'lofi-chill', name: 'Lo-fi Chill Cover', description: 'Soft anime lo-fi cover art', subject: 'Person', outfit: 'Casual', location: 'Rooftop', mood: 'Calm', mode: 'coverart', lighting: 'natural', category: 'coverart' },
+  { id: 'drill-mixtape', name: 'Drill Mixtape', description: 'Gritty mixtape cover design', subject: 'Group', outfit: 'Streetwear', location: 'City street', mood: 'Aggressive', mode: 'coverart', lighting: 'dramatic', category: 'coverart' },
+  { id: 'rnb-single', name: 'R&B Single', description: 'Moody R&B single cover', subject: 'Woman', outfit: 'Luxury', location: 'Studio', mood: 'Mysterious', mode: 'coverart', lighting: 'dramatic', category: 'coverart' },
+  { id: 'rock-ep', name: 'Rock EP', description: 'High contrast rock EP cover', subject: 'Group', outfit: 'Casual', location: 'Studio', mood: 'Aggressive', mode: 'coverart', lighting: 'flash', category: 'coverart' },
+
+  // Lifestyle
+  { id: 'club-night', name: 'Club Night', description: 'Neon-lit party scene vibes', subject: 'Group', outfit: 'Athletic', location: 'Club', mood: 'Happy', mode: 'camera', lighting: 'neon', category: 'lifestyle' },
+  { id: 'coffee-morning', name: 'Coffee Shop Morning', description: 'Soft morning vlog moment', subject: 'Woman', outfit: 'Casual', location: 'Studio', mood: 'Calm', mode: 'camera', lighting: 'natural', category: 'lifestyle' },
+  { id: 'gym-pump', name: 'Gym Pump', description: 'Mid-workout intensity shot', subject: 'Man', outfit: 'Athletic', location: 'Studio', mood: 'Aggressive', mode: 'camera', lighting: 'dramatic', category: 'lifestyle' },
+  { id: 'night-drive', name: 'Night Drive', description: 'POV night drive through the city', subject: 'Person', outfit: 'Casual', location: 'City street', mood: 'Mysterious', mode: 'camera', lighting: 'neon', category: 'lifestyle' },
 ];
 
 export interface GeneratedImage {
