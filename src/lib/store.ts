@@ -311,6 +311,7 @@ export const useAppStore = create<AppState>((set) => ({
           mood: state.mood,
           mode: state.mode,
           lighting: state.advancedSettings.lighting,
+          category: 'lifestyle',
         },
       ],
     })),
