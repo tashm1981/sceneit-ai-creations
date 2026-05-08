@@ -327,14 +327,8 @@ export const useAppStore = create<AppState>((set) => ({
       ...(template.lighting ? { advancedSettings: { creativity: 50, styleStrength: 70, hdEnabled: false, lighting: template.lighting } } : {}),
     }),
   setCredits: (credits) => {
-    const uid = useAppStore.getState().currentUserId;
-    if (uid) {
-      supabase
-        .from('user_credits')
-        .update({ credits, updated_at: new Date().toISOString() })
-        .eq('user_id', uid)
-        .then();
-    }
+    // Local UI state only. All credit mutations are server-side via the
+    // deduct_user_credits RPC invoked from /api/generate-scene.
     set({ credits });
   },
   currentUserId: null,
