@@ -70,14 +70,19 @@ export const Route = createFileRoute('/api/generate-scene')({
                 : 'balanced';
           const cost = tierCost(tier);
 
-          // Check credits
-          const { data: cred } = await supabaseAdmin
-            .from('user_credits')
-            .select('credits')
-            .eq('user_id', userId)
-            .maybeSingle();
-          const current = cred?.credits ?? 0;
-          if (current < cost) {
+          // Atomically reserve credits to prevent TOCTOU race conditions
+          const { data: remainingCredits, error: deductErr } = await supabaseAdmin.rpc(
+            'deduct_user_credits',
+            { _user_id: userId, _cost: cost }
+          );
+          if (deductErr) {
+            console.error('credit deduction error:', deductErr);
+            return new Response(JSON.stringify({ error: 'Internal server error' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            });
+          }
+          if (remainingCredits === null || remainingCredits === undefined) {
             return new Response(JSON.stringify({ error: 'Not enough credits' }), {
               status: 402,
               headers: { 'Content-Type': 'application/json' },
@@ -105,13 +110,23 @@ export const Route = createFileRoute('/api/generate-scene')({
             }),
           });
 
+          // Helper to refund reserved credits if generation fails after deduction
+          const refundCredits = async () => {
+            await supabaseAdmin.rpc('deduct_user_credits', {
+              _user_id: userId,
+              _cost: -cost,
+            });
+          };
+
           if (aiResp.status === 429) {
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'Rate limit — try again shortly.' }), {
               status: 429,
               headers: { 'Content-Type': 'application/json' },
             });
           }
           if (aiResp.status === 402) {
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'AI workspace credits exhausted.' }), {
               status: 402,
               headers: { 'Content-Type': 'application/json' },
@@ -120,6 +135,7 @@ export const Route = createFileRoute('/api/generate-scene')({
           if (!aiResp.ok) {
             const txt = await aiResp.text();
             console.error('AI gateway error:', aiResp.status, txt);
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'AI generation failed' }), {
               status: 500,
               headers: { 'Content-Type': 'application/json' },
@@ -131,6 +147,7 @@ export const Route = createFileRoute('/api/generate-scene')({
             json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
           if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'No image returned' }), {
               status: 502,
               headers: { 'Content-Type': 'application/json' },
@@ -139,6 +156,7 @@ export const Route = createFileRoute('/api/generate-scene')({
 
           const match = dataUrl.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
           if (!match) {
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'Invalid image data' }), {
               status: 502,
               headers: { 'Content-Type': 'application/json' },
@@ -156,6 +174,7 @@ export const Route = createFileRoute('/api/generate-scene')({
 
           if (upErr) {
             console.error('upload error:', upErr);
+            await refundCredits();
             return new Response(JSON.stringify({ error: 'Failed to save image' }), {
               status: 500,
               headers: { 'Content-Type': 'application/json' },
@@ -165,19 +184,14 @@ export const Route = createFileRoute('/api/generate-scene')({
           const { data: pub } = supabaseAdmin.storage.from('scenes').getPublicUrl(path);
           const url = pub.publicUrl;
 
-          await supabaseAdmin
-            .from('user_credits')
-            .update({ credits: current - cost, updated_at: new Date().toISOString() })
-            .eq('user_id', userId);
-
-          return new Response(JSON.stringify({ url, credits: current - cost }), {
+          return new Response(JSON.stringify({ url, credits: remainingCredits }), {
             status: 200,
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (e) {
           console.error('generate-scene error:', e);
           return new Response(
-            JSON.stringify({ error: e instanceof Error ? e.message : 'Unknown error' }),
+            JSON.stringify({ error: 'Internal server error' }),
             { status: 500, headers: { 'Content-Type': 'application/json' } }
           );
         }
