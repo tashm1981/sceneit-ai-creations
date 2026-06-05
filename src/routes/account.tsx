@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link, redirect } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { LogOut, ArrowLeft, Zap, Heart, Images } from 'lucide-react';
+import { LogOut, ArrowLeft, Zap, Heart, Images, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useAppStore } from '@/lib/store';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,6 +96,13 @@ function AccountPage() {
       >
         <LogOut className="h-4 w-4" /> Sign out
       </button>
+
+      <Link
+        to="/pricing"
+        className="mt-3 w-full gradient-primary glow-purple rounded-2xl py-3.5 font-display text-sm font-bold tracking-wider uppercase text-primary-foreground flex items-center justify-center gap-2"
+      >
+        <Crown className="h-4 w-4" /> Upgrade Plan
+      </Link>
     </div>
   );
 }
