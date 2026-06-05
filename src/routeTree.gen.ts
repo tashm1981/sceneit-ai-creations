@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TemplatesRouteImport } from './routes/templates'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as CreateRouteImport } from './routes/create'
@@ -17,6 +18,11 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGenerateSceneRouteImport } from './routes/api.generate-scene'
 
+const TemplatesRoute = TemplatesRouteImport.update({
+  id: '/templates',
+  path: '/templates',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PricingRoute = PricingRouteImport.update({
   id: '/pricing',
   path: '/pricing',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
   '/pricing': typeof PricingRoute
+  '/templates': typeof TemplatesRoute
   '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
   '/pricing': typeof PricingRoute
+  '/templates': typeof TemplatesRoute
   '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/create': typeof CreateRoute
   '/gallery': typeof GalleryRoute
   '/pricing': typeof PricingRoute
+  '/templates': typeof TemplatesRoute
   '/api/generate-scene': typeof ApiGenerateSceneRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/gallery'
     | '/pricing'
+    | '/templates'
     | '/api/generate-scene'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/gallery'
     | '/pricing'
+    | '/templates'
     | '/api/generate-scene'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/create'
     | '/gallery'
     | '/pricing'
+    | '/templates'
     | '/api/generate-scene'
   fileRoutesById: FileRoutesById
 }
@@ -118,11 +130,19 @@ export interface RootRouteChildren {
   CreateRoute: typeof CreateRoute
   GalleryRoute: typeof GalleryRoute
   PricingRoute: typeof PricingRoute
+  TemplatesRoute: typeof TemplatesRoute
   ApiGenerateSceneRoute: typeof ApiGenerateSceneRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/templates': {
+      id: '/templates'
+      path: '/templates'
+      fullPath: '/templates'
+      preLoaderRoute: typeof TemplatesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pricing': {
       id: '/pricing'
       path: '/pricing'
@@ -182,8 +202,18 @@ const rootRouteChildren: RootRouteChildren = {
   CreateRoute: CreateRoute,
   GalleryRoute: GalleryRoute,
   PricingRoute: PricingRoute,
+  TemplatesRoute: TemplatesRoute,
   ApiGenerateSceneRoute: ApiGenerateSceneRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
