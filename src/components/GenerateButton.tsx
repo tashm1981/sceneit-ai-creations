@@ -6,7 +6,7 @@ export function GenerateButton({ onGenerate }: { onGenerate: () => void }) {
   const { isGenerating, credits } = useAppStore();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent pt-8 z-50">
+    <div className="fixed left-0 right-0 px-4 pt-8 pb-2 bg-gradient-to-t from-background via-background to-transparent z-40 bottom-[calc(4rem+env(safe-area-inset-bottom))]">
       <motion.button
         whileTap={{ scale: 0.97 }}
         onClick={onGenerate}

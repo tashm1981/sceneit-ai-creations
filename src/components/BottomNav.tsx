@@ -1,9 +1,10 @@
 import { Link, useLocation } from '@tanstack/react-router';
-import { Home, PlusCircle, Images, User } from 'lucide-react';
+import { Home, PlusCircle, Images, User, Layout } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
 const BASE_ITEMS = [
   { to: '/' as const, label: 'Home', icon: Home },
+  { to: '/templates' as const, label: 'Templates', icon: Layout },
   { to: '/create' as const, label: 'Create', icon: PlusCircle },
   { to: '/gallery' as const, label: 'Gallery', icon: Images },
 ];
