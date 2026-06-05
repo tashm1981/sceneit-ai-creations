@@ -112,7 +112,7 @@ function CreatePage() {
   };
 
   return (
-    <div className="min-h-screen px-5 py-6 pb-36">
+    <div className="min-h-screen px-5 py-6 pb-[calc(10rem+env(safe-area-inset-bottom))]">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0 }}

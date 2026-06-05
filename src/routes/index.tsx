@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Zap, Images, Sparkles, ArrowRight } from 'lucide-react';
+import { Zap, Images, Sparkles, ArrowRight, Layout } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ShowcaseCarousel } from '@/components/ShowcaseCarousel';
 import { useAppStore } from '@/lib/store';
@@ -138,6 +138,15 @@ function HomePage() {
           >
             <Images className="h-4 w-4" />
             Browse Gallery
+          </motion.div>
+        </Link>
+        <Link to="/templates" className="block">
+          <motion.div
+            whileTap={{ scale: 0.97 }}
+            className="w-full bg-surface-elevated border-glow rounded-2xl py-4 font-display text-sm font-bold tracking-wider uppercase text-muted-foreground text-center flex items-center justify-center gap-2"
+          >
+            <Layout className="h-4 w-4" />
+            Browse Templates
           </motion.div>
         </Link>
       </motion.div>
