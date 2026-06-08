@@ -10,7 +10,8 @@ import { ImageGallery } from '@/components/ImageGallery';
 import { ReferenceImageUpload } from '@/components/ReferenceImageUpload';
 import { TemplateManager } from '@/components/TemplateManager';
 import { ModelSelector } from '@/components/ModelSelector';
-import { useAppStore, buildPrompt, type GeneratedImage } from '@/lib/store';
+import { DebugPanel } from '@/components/DebugPanel';
+import { useAppStore, buildPrompt, composePrompt, type GeneratedImage } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { useNavigate } from '@tanstack/react-router';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,7 +59,10 @@ function CreatePage() {
     }
     store.setIsGenerating(true);
 
-    const prompt = store.customPrompt || buildPrompt(store);
+    const templatePrompt = buildPrompt(store);
+    const userPrompt = store.userPrompt;
+    const hasReference = store.referenceImages.length > 0;
+    const prompt = composePrompt({ templatePrompt, userPrompt, hasReference });
 
     (async () => {
       try {
@@ -66,17 +70,32 @@ function CreatePage() {
         const token = sessionData.session?.access_token;
         if (!token) throw new Error('Not signed in');
 
+        const payload = {
+          prompt,
+          templatePrompt,
+          userPrompt,
+          tier: store.modelTier,
+          hd: store.advancedSettings.hdEnabled,
+          referenceImages: store.referenceImages.map((r) => ({
+            type: r.type,
+            dataUrl: r.dataUrl,
+          })),
+        };
+        store.setLastDebugPayload({
+          ...payload,
+          referenceImages: payload.referenceImages.map((r) => ({
+            type: r.type,
+            sizeKB: Math.round(r.dataUrl.length / 1024),
+          })),
+        });
+
         const resp = await fetch('/api/generate-scene', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            prompt,
-            tier: store.modelTier,
-            hd: store.advancedSettings.hdEnabled,
-          }),
+          body: JSON.stringify(payload),
         });
 
         const json = await resp.json().catch(() => ({}));
@@ -184,6 +203,9 @@ function CreatePage() {
 
         {/* Advanced Settings */}
         <AdvancedSettings />
+
+        {/* Developer Mode */}
+        <DebugPanel />
 
         {/* Gallery */}
         <ImageGallery />
