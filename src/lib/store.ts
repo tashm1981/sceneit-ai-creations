@@ -449,3 +449,30 @@ export function buildPrompt(state: {
 
   return base;
 }
+
+export function composePrompt(opts: {
+  templatePrompt: string;
+  userPrompt: string;
+  hasReference: boolean;
+}): string {
+  const { templatePrompt, userPrompt, hasReference } = opts;
+  const user = userPrompt.trim();
+
+  if (hasReference) {
+    // Reference image becomes the character. Template is the styling layer.
+    // User instructions remain authoritative and are applied last.
+    const parts = [
+      'Use the attached reference image(s) as the primary subject. Preserve the identity, face, body type, skin tone, and distinguishing features of the person in the reference image exactly. Do NOT replace them with a different character.',
+      `Apply the following scene and styling to that same subject: ${templatePrompt}.`,
+    ];
+    if (user) {
+      parts.push(`Additional user instructions (authoritative, override template styling where in conflict): ${user}.`);
+    }
+    return parts.join(' ');
+  }
+
+  if (user) {
+    return `${templatePrompt}. User instructions (authoritative): ${user}.`;
+  }
+  return templatePrompt;
+}
