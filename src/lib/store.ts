@@ -237,6 +237,12 @@ export const useAppStore = create<AppState>((set) => ({
   setMood: (mood) => set({ mood }),
   customPrompt: '',
   setCustomPrompt: (customPrompt) => set({ customPrompt }),
+  userPrompt: '',
+  setUserPrompt: (userPrompt) => set({ userPrompt }),
+  debugMode: false,
+  setDebugMode: (debugMode) => set({ debugMode }),
+  lastDebugPayload: null,
+  setLastDebugPayload: (lastDebugPayload) => set({ lastDebugPayload }),
   advancedSettings: {
     creativity: 50,
     styleStrength: 70,
