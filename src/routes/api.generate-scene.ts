@@ -54,6 +54,9 @@ export const Route = createFileRoute('/api/generate-scene')({
             prompt?: string;
             hd?: boolean;
             tier?: ModelTier;
+            templatePrompt?: string;
+            userPrompt?: string;
+            referenceImages?: Array<{ type: 'style' | 'subject'; dataUrl: string }>;
           };
           const prompt = (body.prompt ?? '').trim();
           if (prompt.length < 4 || prompt.length > 4000) {
@@ -62,6 +65,17 @@ export const Route = createFileRoute('/api/generate-scene')({
               headers: { 'Content-Type': 'application/json' },
             });
           }
+          const refs = Array.isArray(body.referenceImages) ? body.referenceImages : [];
+          // Cap to 5 references and validate data URLs
+          const safeRefs = refs
+            .filter(
+              (r) =>
+                r &&
+                typeof r.dataUrl === 'string' &&
+                r.dataUrl.startsWith('data:image/') &&
+                r.dataUrl.length < 6 * 1024 * 1024 // ~6MB per image
+            )
+            .slice(0, 5);
           const tier: ModelTier =
             body.tier && ['fast', 'balanced', 'hd'].includes(body.tier)
               ? body.tier
@@ -97,6 +111,14 @@ export const Route = createFileRoute('/api/generate-scene')({
             });
           }
 
+          const userContent: Array<
+            | { type: 'text'; text: string }
+            | { type: 'image_url'; image_url: { url: string } }
+          > = [{ type: 'text', text: prompt }];
+          for (const r of safeRefs) {
+            userContent.push({ type: 'image_url', image_url: { url: r.dataUrl } });
+          }
+
           const aiResp = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -105,7 +127,7 @@ export const Route = createFileRoute('/api/generate-scene')({
             },
             body: JSON.stringify({
               model: pickModel(tier),
-              messages: [{ role: 'user', content: prompt }],
+              messages: [{ role: 'user', content: userContent }],
               modalities: ['image', 'text'],
             }),
           });

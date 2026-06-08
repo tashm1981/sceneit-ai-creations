@@ -183,6 +183,12 @@ interface AppState {
   setMood: (m: Mood) => void;
   customPrompt: string;
   setCustomPrompt: (p: string) => void;
+  userPrompt: string;
+  setUserPrompt: (p: string) => void;
+  debugMode: boolean;
+  setDebugMode: (v: boolean) => void;
+  lastDebugPayload: unknown | null;
+  setLastDebugPayload: (p: unknown) => void;
   advancedSettings: AdvancedSettings;
   setAdvancedSettings: (s: Partial<AdvancedSettings>) => void;
   modelTier: ModelTier;
@@ -231,6 +237,12 @@ export const useAppStore = create<AppState>((set) => ({
   setMood: (mood) => set({ mood }),
   customPrompt: '',
   setCustomPrompt: (customPrompt) => set({ customPrompt }),
+  userPrompt: '',
+  setUserPrompt: (userPrompt) => set({ userPrompt }),
+  debugMode: false,
+  setDebugMode: (debugMode) => set({ debugMode }),
+  lastDebugPayload: null,
+  setLastDebugPayload: (lastDebugPayload) => set({ lastDebugPayload }),
   advancedSettings: {
     creativity: 50,
     styleStrength: 70,
@@ -436,4 +448,31 @@ export function buildPrompt(state: {
   }
 
   return base;
+}
+
+export function composePrompt(opts: {
+  templatePrompt: string;
+  userPrompt: string;
+  hasReference: boolean;
+}): string {
+  const { templatePrompt, userPrompt, hasReference } = opts;
+  const user = userPrompt.trim();
+
+  if (hasReference) {
+    // Reference image becomes the character. Template is the styling layer.
+    // User instructions remain authoritative and are applied last.
+    const parts = [
+      'Use the attached reference image(s) as the primary subject. Preserve the identity, face, body type, skin tone, and distinguishing features of the person in the reference image exactly. Do NOT replace them with a different character.',
+      `Apply the following scene and styling to that same subject: ${templatePrompt}.`,
+    ];
+    if (user) {
+      parts.push(`Additional user instructions (authoritative, override template styling where in conflict): ${user}.`);
+    }
+    return parts.join(' ');
+  }
+
+  if (user) {
+    return `${templatePrompt}. User instructions (authoritative): ${user}.`;
+  }
+  return templatePrompt;
 }
