@@ -183,6 +183,12 @@ interface AppState {
   setMood: (m: Mood) => void;
   customPrompt: string;
   setCustomPrompt: (p: string) => void;
+  userPrompt: string;
+  setUserPrompt: (p: string) => void;
+  debugMode: boolean;
+  setDebugMode: (v: boolean) => void;
+  lastDebugPayload: unknown | null;
+  setLastDebugPayload: (p: unknown) => void;
   advancedSettings: AdvancedSettings;
   setAdvancedSettings: (s: Partial<AdvancedSettings>) => void;
   modelTier: ModelTier;
